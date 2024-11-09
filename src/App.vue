@@ -348,7 +348,16 @@ const themes = tailwindConfig.daisyui.themes
 const i2cFreq = ref(parseInt(localStorage.getItem('i2c-freq')) || 400)
 const i2cclk = ref(parseInt(localStorage.getItem('i2cclk')) || 16)
 const registerHex = ref(localStorage.getItem('i2c-register') || '0x00000000')
-const fields = reactive({
+
+interface TimingResult {
+  presc: number
+  scldel: number
+  sdadel: number
+  sclh: number
+  scll: number
+}
+
+const fields = reactive<TimingResult>({
   presc: 0,
   scldel: 0,
   sdadel: 0,
@@ -372,8 +381,8 @@ watch(i2cclk, (newValue) => {
   localStorage.setItem('i2cclk', newValue)
 })
 
-function updateFieldsFromRegister() {
-  const value = BigInt(`0x${registerHex.value.replace('0x', '')}`)
+function updateFieldsFromRegister(): void {
+  const value: bigint = BigInt(`0x${registerHex.value.replace('0x', '')}`)
   fields.presc = Number((value >> 28n) & 0xfn)
   fields.scldel = Number((value >> 20n) & 0xfn)
   fields.sdadel = Number((value >> 16n) & 0xfn)
@@ -381,8 +390,8 @@ function updateFieldsFromRegister() {
   fields.scll = Number(value & 0xffn)
 }
 
-function updateRegisterFromFields() {
-  const value =
+function updateRegisterFromFields(): void {
+  const value: bigint =
     ((BigInt(fields.presc) & 0xfn) << 28n) |
     ((BigInt(fields.scldel) & 0xfn) << 20n) |
     ((BigInt(fields.sdadel) & 0xfn) << 16n) |
@@ -391,40 +400,40 @@ function updateRegisterFromFields() {
   registerHex.value = '0x' + value.toString(16).toUpperCase().padStart(8, '0')
 }
 
-function getBitAtPosition(position) {
-  const value = parseInt(registerHex.value, 16)
+function getBitAtPosition(position: number): number {
+  const value: number = parseInt(registerHex.value, 16)
   return (value >> position) & 1
 }
 
-function toggleBit(position) {
-  const value = BigInt(`0x${registerHex.value.replace('0x', '')}`)
-  const mask = 1n << BigInt(position)
-  const newValue = value ^ mask
+function toggleBit(position: number): void {
+  const value: bigint = BigInt(`0x${registerHex.value.replace('0x', '')}`)
+  const mask: bigint = 1n << BigInt(position)
+  const newValue: bigint = value ^ mask
   registerHex.value = '0x' + (newValue & 0xffffffffn).toString(16).toUpperCase().padStart(8, '0')
   updateFieldsFromRegister()
 }
 
-function updateFieldFromHex(field, value, mask) {
-  const numValue = parseInt(value.replace('0x', ''), 16)
+function updateFieldFromHex(field: keyof typeof fields, value: string, mask: number): void {
+  const numValue: number = parseInt(value.replace('0x', ''), 16)
   if (!isNaN(numValue)) {
     fields[field] = numValue & mask
     updateRegisterFromFields()
   }
 }
 
-function resetRegister() {
+function resetRegister(): void {
   registerHex.value = '0x00000000'
   updateFieldsFromRegister()
 }
 
-function setDefaultValue() {
-  registerHex.value = '0x300619' // From the example in the RM0377 technical reference
+function setDefaultValue(): void {
+  registerHex.value = '0x300619'
   updateFieldsFromRegister()
 }
 
-function calculateFromFreqs() {
+function calculateFromFreqs(): void {
   try {
-    const timings = calculateTimings(i2cclk.value * 1000000, i2cFreq.value * 1000)
+    const timings: TimingResult = calculateTimings(i2cclk.value * 1000000, i2cFreq.value * 1000)
     fields.presc = timings.presc
     fields.scldel = timings.scldel
     fields.sdadel = timings.sdadel
@@ -433,26 +442,30 @@ function calculateFromFreqs() {
     updateRegisterFromFields()
     error.value = null
   } catch (e) {
-    error.value = e.message
+    error.value = (e as Error).message
     setTimeout(() => {
       error.value = null
     }, 3000)
   }
 }
 
-function calculateTimings(i2cclk, freq) {
+function calculateTimings(i2cclk: number, freq: number): TimingResult {
   // Ratio check
-  const ratio = Math.floor(i2cclk / freq)
+  const ratio: number = Math.floor(i2cclk / freq)
   if (ratio < 4) {
     throw new Error('The I2C PCLK must be at least 4 times the bus frequency!')
   }
 
-  let presc_reg, scll, sclh, sdadel, scldel
+  let presc_reg: number
+  let scll: number
+  let sclh: number
+  let sdadel: number
+  let scldel: number
 
   if (freq > 100000) {
     // Fast-mode (Fm) or Fast-mode Plus (Fm+)
     presc_reg = Math.floor((ratio - 1) / 384)
-    const presc = presc_reg + 1
+    const presc: number = presc_reg + 1
 
     sclh = Math.floor(ratio / presc - 3) / 3
     scll = 2 * (sclh + 1) - 1
@@ -474,7 +487,7 @@ function calculateTimings(i2cclk, freq) {
     // Standard-mode (Sm)
     if (i2cclk < 2000000) throw new Error('I2CCLK too low for Sm')
 
-    const presc = Math.floor((ratio - 1) / 512)
+    const presc: number = Math.floor((ratio - 1) / 512)
     presc_reg = Math.min(presc, 15)
 
     sclh = Math.floor(ratio / (presc_reg + 1) - 2) / 2
