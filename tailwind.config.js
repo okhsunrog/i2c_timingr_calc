@@ -25,7 +25,6 @@ export default {
       'night',
       'coffee',
       'dim',
-      'nord',
       'sunset',
     ],
     defaultTheme: 'coffee',
