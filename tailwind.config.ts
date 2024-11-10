@@ -9,11 +9,8 @@ export default {
   plugins: [daisyui],
   daisyui: {
     themes: [
-      'light',
       'cupcake',
       'bumblebee',
-      'emerald',
-      'corporate',
       'retro',
       'halloween',
       'fantasy',
@@ -28,6 +25,6 @@ export default {
       'dim',
       'sunset',
     ],
-    defaultTheme: 'coffee',
+    defaultTheme: 'lemonade',
   },
 } satisfies Config
