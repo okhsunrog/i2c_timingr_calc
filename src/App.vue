@@ -191,7 +191,7 @@
                           type="text"
                           :value="`0x${fields.presc.toString(16).toUpperCase().padStart(1, '0')}`"
                           class="input input-bordered input-sm w-20"
-                          @input="(e) => updateFieldFromHex('presc', e.target.value, 0xf)"
+                          @input="(e) => updateFieldFromHex('presc', e, 0xf)"
                         />
                       </div>
                     </td>
@@ -211,7 +211,7 @@
                           type="text"
                           :value="`0x${fields.scldel.toString(16).toUpperCase().padStart(1, '0')}`"
                           class="input input-bordered input-sm w-20"
-                          @input="(e) => updateFieldFromHex('scldel', e.target.value, 0xf)"
+                          @input="(e) => updateFieldFromHex('scldel', e, 0xf)"
                         />
                       </div>
                     </td>
@@ -225,7 +225,7 @@
                           type="text"
                           :value="`0x${fields.sdadel.toString(16).toUpperCase().padStart(1, '0')}`"
                           class="input input-bordered input-sm w-20"
-                          @input="(e) => updateFieldFromHex('sdadel', e.target.value, 0xf)"
+                          @input="(e) => updateFieldFromHex('sdadel', e, 0xf)"
                         />
                       </div>
                     </td>
@@ -262,7 +262,7 @@
                           type="text"
                           :value="`0x${fields.sclh.toString(16).toUpperCase().padStart(2, '0')}`"
                           class="input input-bordered input-sm w-20"
-                          @input="(e) => updateFieldFromHex('sclh', e.target.value, 0xff)"
+                          @input="(e) => updateFieldFromHex('sclh', e, 0xff)"
                         />
                       </div>
                     </td>
@@ -276,7 +276,7 @@
                           type="text"
                           :value="`0x${fields.scll.toString(16).toUpperCase().padStart(2, '0')}`"
                           class="input input-bordered input-sm w-20"
-                          @input="(e) => updateFieldFromHex('scll', e.target.value, 0xff)"
+                          @input="(e) => updateFieldFromHex('scll', e, 0xff)"
                         />
                       </div>
                     </td>
@@ -342,11 +342,11 @@ onMounted(() => {
   themeChange(false)
 })
 
-const error = ref(null)
+const error = ref<string | null>(null)
 
 const themes = tailwindConfig.daisyui.themes
-const i2cFreq = ref(parseInt(localStorage.getItem('i2c-freq')) || 400)
-const i2cclk = ref(parseInt(localStorage.getItem('i2cclk')) || 16)
+const i2cFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
+const i2cclk = ref(Number(localStorage.getItem('i2cclk')) || 16)
 const registerHex = ref(localStorage.getItem('i2c-register') || '0x00000000')
 
 interface TimingResult {
@@ -374,11 +374,11 @@ watch(registerHex, (newValue) => {
 })
 
 watch(i2cFreq, (newValue) => {
-  localStorage.setItem('i2c-freq', newValue)
+  localStorage.setItem('i2c-freq', newValue.toString())
 })
 
 watch(i2cclk, (newValue) => {
-  localStorage.setItem('i2cclk', newValue)
+  localStorage.setItem('i2cclk', newValue.toString())
 })
 
 function updateFieldsFromRegister(): void {
@@ -413,8 +413,9 @@ function toggleBit(position: number): void {
   updateFieldsFromRegister()
 }
 
-function updateFieldFromHex(field: keyof typeof fields, value: string, mask: number): void {
-  const numValue: number = parseInt(value.replace('0x', ''), 16)
+function updateFieldFromHex(field: keyof typeof fields, event: Event, mask: number): void {
+  const value = (event.target as HTMLInputElement).value
+  const numValue = parseInt(value.replace('0x', ''), 16)
   if (!isNaN(numValue)) {
     fields[field] = numValue & mask
     updateRegisterFromFields()
