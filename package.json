@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@types/tailwindcss": "^3.1.0",
     "katex": "^0.16.11",
     "theme-change": "^2.5.0",
     "vue": "^3.5.12",

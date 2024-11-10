@@ -336,7 +336,7 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive, watch } from 'vue'
 import { themeChange } from 'theme-change'
-import tailwindConfig from '../tailwind.config.js'
+import tailwindConfig from '../tailwind.config'
 
 onMounted(() => {
   themeChange(false)
