@@ -19,6 +19,7 @@
     "vue3-katex": "^0.7.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.9.0",
     "@vitejs/plugin-vue": "^5.1.4",
