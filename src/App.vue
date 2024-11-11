@@ -18,7 +18,7 @@
                 <input
                   v-model="registerHex"
                   type="text"
-                  class="input input-bordered w-48"
+                  class="input input-bordered w-full max-w-xs"
                   placeholder="0x00000000"
                   @input="updateFieldsFromRegister"
                 />
@@ -28,13 +28,13 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">I2C Bus Frequency (kHz)</span>
+                    <span class="label-text">I2C Freq (kHz)</span>
                   </label>
                   <input
-                    v-model.number="i2cFreq"
+                    v-model.number="inputFreq"
                     type="number"
-                    class="input input-bordered"
-                    placeholder="400000"
+                    class="input input-bordered input-sm w-full"
+                    placeholder="400"
                   />
                 </div>
                 <div class="form-control">
@@ -42,10 +42,10 @@
                     <span class="label-text">I2CCLK (MHz)</span>
                   </label>
                   <input
-                    v-model.number="i2cclk"
+                    v-model.number="inputClk"
                     type="number"
-                    class="input input-bordered"
-                    placeholder="16000000"
+                    class="input input-bordered input-sm w-full"
+                    placeholder="16"
                   />
                 </div>
                 <button class="btn btn-primary" @click="calculateFromFreqs">Calculate</button>
@@ -396,10 +396,16 @@ const timingValues = computed(() => {
 const error = ref<string | null>(null)
 
 const themes = tailwindConfig.daisyui.themes
-const i2cFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
-const i2cclk = ref(Number(localStorage.getItem('i2cclk')) || 16)
 const registerHex = ref(localStorage.getItem('i2c-register') || '0x00000000')
 const showFormulas = ref(false)
+
+// Current values used in calculations
+const i2cFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
+const i2cclk = ref(Number(localStorage.getItem('i2cclk')) || 16)
+
+// Input values that change with user input
+const inputFreq = ref(i2cFreq.value)
+const inputClk = ref(i2cclk.value)
 
 const fields = reactive<TimingResult>({
   presc: 0,
@@ -478,7 +484,12 @@ function setDefaultValue(): void {
 
 function calculateFromFreqs(): void {
   try {
-    const result = calculateTimings(i2cclk.value * 1000000, i2cFreq.value * 1000)
+    const result = calculateTimings(inputClk.value * 1000000, inputFreq.value * 1000)
+
+    // Update the main values from inputs
+    i2cFreq.value = inputFreq.value
+    i2cclk.value = inputClk.value
+
     fields.presc = result.presc
     fields.scldel = result.scldel
     fields.sdadel = result.sdadel
