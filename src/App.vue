@@ -55,18 +55,34 @@
           </div>
         </div>
 
-        <!-- Add this card after your other cards -->
-        <div class="card bg-base-100 shadow-xl">
+        <div v-if="calculations" class="card bg-base-100 shadow-xl md:col-span-2">
           <div class="card-body">
             <h2 class="card-title">Timing Calculations</h2>
             <div class="space-y-4">
               <div>
                 <div
                   v-katex:display="
+                    '\\text{Ratio} = \\frac{f_{I2CCLK}}{f_{I2C}} = \\frac{' +
+                    i2cclk +
+                    '\\text{ MHz}}{' +
+                    i2cFreq +
+                    '\\text{ kHz}} = ' +
+                    calculations.ratio.toFixed(2)
+                  "
+                ></div>
+              </div>
+
+              <div>
+                <div v-katex:display="'\\text{Mode: } ' + calculations.mode"></div>
+              </div>
+
+              <div>
+                <div
+                  v-katex:display="
                     't_{I2CCLK} = \\frac{1}{' +
                     i2cclk +
                     '\\text{ MHz}} = ' +
-                    (1000 / i2cclk).toFixed(2) +
+                    calculations.tI2CCLK.toFixed(2) +
                     '\\text{ ns}'
                   "
                 ></div>
@@ -75,8 +91,21 @@
               <div>
                 <div
                   v-katex:display="
+                    '\\text{PRESC} = \\left\\lfloor\\frac{\\text{ratio} - 1}{' +
+                    (i2cFreq <= 100 ? '512' : '384') +
+                    '}\\right\\rfloor = ' +
+                    fields.presc +
+                    '\\text{, actual presc = }' +
+                    calculations.presc
+                  "
+                ></div>
+              </div>
+
+              <div>
+                <div
+                  v-katex:display="
                     't_{PRESC} = (PRESC + 1) \\times t_{I2CCLK} = ' +
-                    (((fields.presc + 1) * 1000) / i2cclk).toFixed(2) +
+                    calculations.tPRESC.toFixed(2) +
                     '\\text{ ns}'
                   "
                 ></div>
@@ -86,29 +115,29 @@
                 <div
                   v-katex:display="
                     't_{SCLDEL} = (SCLDEL + 1) \\times t_{PRESC} = ' +
-                    (((fields.scldel + 1) * (fields.presc + 1) * 1000) / i2cclk).toFixed(2) +
+                    calculations.tSCLDEL.toFixed(2) +
                     '\\text{ ns}'
                   "
                 ></div>
-                <div class="text-sm opacity-75">Data setup time</div>
+                <div class="text-sm opacity-75">Data setup time (tSU;DAT)</div>
               </div>
 
               <div>
                 <div
                   v-katex:display="
                     't_{SDADEL} = SDADEL \\times t_{PRESC} = ' +
-                    ((fields.sdadel * (fields.presc + 1) * 1000) / i2cclk).toFixed(2) +
+                    calculations.tSDADEL.toFixed(2) +
                     '\\text{ ns}'
                   "
                 ></div>
-                <div class="text-sm opacity-75">Data hold time</div>
+                <div class="text-sm opacity-75">Data hold time (tHD;DAT)</div>
               </div>
 
               <div>
                 <div
                   v-katex:display="
                     't_{SCLH} = (SCLH + 1) \\times t_{PRESC} = ' +
-                    (((fields.sclh + 1) * (fields.presc + 1) * 1000) / i2cclk).toFixed(2) +
+                    calculations.tSCLH.toFixed(2) +
                     '\\text{ ns}'
                   "
                 ></div>
@@ -119,7 +148,7 @@
                 <div
                   v-katex:display="
                     't_{SCLL} = (SCLL + 1) \\times t_{PRESC} = ' +
-                    (((fields.scll + 1) * (fields.presc + 1) * 1000) / i2cclk).toFixed(2) +
+                    calculations.tSCLL.toFixed(2) +
                     '\\text{ ns}'
                   "
                 ></div>
@@ -130,10 +159,7 @@
                 <div
                   v-katex:display="
                     't_{SCL} = t_{SCLH} + t_{SCLL} = ' +
-                    (
-                      ((fields.sclh + 1 + (fields.scll + 1)) * (fields.presc + 1) * 1000) /
-                      i2cclk
-                    ).toFixed(2) +
+                    calculations.tSCL.toFixed(2) +
                     '\\text{ ns}'
                   "
                 ></div>
@@ -143,11 +169,19 @@
               <div>
                 <div
                   v-katex:display="
+                    't_{SYNC1} + t_{SYNC2} = 4 \\times t_{I2CCLK} = ' +
+                    calculations.tSYNC.toFixed(2) +
+                    '\\text{ ns}'
+                  "
+                ></div>
+                <div class="text-sm opacity-75">Minimum synchronization time</div>
+              </div>
+
+              <div>
+                <div
+                  v-katex:display="
                     'f_{I2C} = \\frac{1}{t_{SCL}} = ' +
-                    (
-                      1000000 /
-                      (((fields.sclh + fields.scll + 2) * (fields.presc + 1) * 1000) / i2cclk)
-                    ).toFixed(2) +
+                    calculations.actualFreq.toFixed(2) +
                     '\\text{ kHz}'
                   "
                 ></div>
@@ -342,13 +376,6 @@ onMounted(() => {
   themeChange(false)
 })
 
-const error = ref<string | null>(null)
-
-const themes = tailwindConfig.daisyui.themes
-const i2cFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
-const i2cclk = ref(Number(localStorage.getItem('i2cclk')) || 16)
-const registerHex = ref(localStorage.getItem('i2c-register') || '0x00000000')
-
 interface TimingResult {
   presc: number
   scldel: number
@@ -356,6 +383,32 @@ interface TimingResult {
   sclh: number
   scll: number
 }
+
+interface TimingCalculation {
+  // Original timing parameters
+  timings: TimingResult
+  // Intermediate calculations
+  ratio: number
+  mode: 'Standard-mode (Sm)' | 'Fast-mode (Fm)' | 'Fast-mode Plus (Fm+)'
+  tI2CCLK: number
+  presc: number
+  tPRESC: number
+  tSCLDEL: number
+  tSDADEL: number
+  tSCLH: number
+  tSCLL: number
+  tSCL: number
+  tSYNC: number
+  actualFreq: number
+}
+
+const error = ref<string | null>(null)
+
+const themes = tailwindConfig.daisyui.themes
+const i2cFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
+const i2cclk = ref(Number(localStorage.getItem('i2cclk')) || 16)
+const registerHex = ref(localStorage.getItem('i2c-register') || '0x00000000')
+const calculations = ref<TimingCalculation | null>(null)
 
 const fields = reactive<TimingResult>({
   presc: 0,
@@ -434,12 +487,13 @@ function setDefaultValue(): void {
 
 function calculateFromFreqs(): void {
   try {
-    const timings: TimingResult = calculateTimings(i2cclk.value * 1000000, i2cFreq.value * 1000)
-    fields.presc = timings.presc
-    fields.scldel = timings.scldel
-    fields.sdadel = timings.sdadel
-    fields.sclh = timings.sclh
-    fields.scll = timings.scll
+    const result = calculateTimings(i2cclk.value * 1000000, i2cFreq.value * 1000)
+    fields.presc = result.timings.presc
+    fields.scldel = result.timings.scldel
+    fields.sdadel = result.timings.sdadel
+    fields.sclh = result.timings.sclh
+    fields.scll = result.timings.scll
+    calculations.value = result
     updateRegisterFromFields()
     error.value = null
   } catch (e) {
@@ -450,12 +504,15 @@ function calculateFromFreqs(): void {
   }
 }
 
-function calculateTimings(i2cclk: number, freq: number): TimingResult {
+
+function calculateTimings(i2cclk: number, freq: number): TimingCalculation {
   // Ratio check
   const ratio: number = Math.floor(i2cclk / freq)
   if (ratio < 4) {
     throw new Error('The I2C PCLK must be at least 4 times the bus frequency!')
   }
+
+  const tI2CCLK = 1e9 / i2cclk // ns
 
   let presc_reg: number
   let scll: number
@@ -468,8 +525,8 @@ function calculateTimings(i2cclk: number, freq: number): TimingResult {
     presc_reg = Math.floor((ratio - 1) / 384)
     const presc: number = presc_reg + 1
 
-    sclh = Math.floor(ratio / presc - 3) / 3
-    scll = 2 * (sclh + 1) - 1
+    sclh = Math.floor(((ratio / presc) - 3) / 3)
+    scll = Math.floor(2 * (sclh + 1) - 1)
 
     if (freq > 400000) {
       // Fast-mode Plus (Fm+)
@@ -506,12 +563,37 @@ function calculateTimings(i2cclk: number, freq: number): TimingResult {
   sdadel = Math.max(sdadel, 2)
   scldel = Math.max(scldel, 4)
 
-  return {
+  const timings: TimingResult = {
     presc: presc_reg,
     scll: Math.floor(scll),
     sclh: Math.floor(sclh),
     sdadel: Math.floor(sdadel),
     scldel: Math.floor(scldel),
   }
+
+  const presc = presc_reg + 1
+  const tPRESC = presc * tI2CCLK
+
+  return {
+    timings,
+    ratio,
+    mode:
+      freq > 400000
+        ? 'Fast-mode Plus (Fm+)'
+        : freq > 100000
+          ? 'Fast-mode (Fm)'
+          : 'Standard-mode (Sm)',
+    tI2CCLK,
+    presc,
+    tPRESC,
+    tSCLDEL: (timings.scldel + 1) * tPRESC,
+    tSDADEL: timings.sdadel * tPRESC,
+    tSCLH: (timings.sclh + 1) * tPRESC,
+    tSCLL: (timings.scll + 1) * tPRESC,
+    tSCL: (timings.sclh + timings.scll + 2) * tPRESC,
+    tSYNC: 4 * tI2CCLK,
+    actualFreq: 1e6 / ((timings.sclh + timings.scll + 2) * tPRESC),
+  }
 }
+
 </script>
