@@ -10,52 +10,12 @@
         </select>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="card bg-base-100 shadow-xl">
-          <div class="card-body">
-            <h2 class="card-title">Register Value (32-bit hex)</h2>
-            <div class="space-y-2">
-              <div class="flex gap-2 items-center">
-                <input
-                  v-model="registerHex"
-                  type="text"
-                  class="input input-bordered w-full max-w-xs"
-                  placeholder="0x00000000"
-                  @input="updateFieldsFromRegister"
-                />
-                <button class="btn btn-sm btn-accent" @click="resetRegister">Reset</button>
-                <button class="btn btn-sm btn-success" @click="setDefaultValue">Default</button>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">I2C Freq (kHz)</span>
-                  </label>
-                  <input
-                    v-model.number="inputFreq"
-                    type="number"
-                    class="input input-bordered input-sm w-full"
-                    placeholder="400"
-                  />
-                </div>
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">I2CCLK (MHz)</span>
-                  </label>
-                  <input
-                    v-model.number="inputClk"
-                    type="number"
-                    class="input input-bordered input-sm w-full"
-                    placeholder="16"
-                  />
-                </div>
-                <button class="btn btn-primary" @click="calculateFromFreqs">Calculate</button>
-                <button v-if="!showFormulas" class="btn btn-secondary" @click="showFormulas = true">
-                  Show Formulas
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TimingCalculator
+          v-model="registerHex"
+          @calculate="onCalculate"
+          @showFormulas="showFormulas = true"
+          @error="error = $event"
+        />
 
         <div v-if="showFormulas" class="card bg-base-100 shadow-xl">
           <div class="card-body">
@@ -183,6 +143,8 @@ import { themeChange } from 'theme-change'
 import tailwindConfig from '../tailwind.config'
 import type { TimingResult, TimingFields } from '@/types/timing'
 import TimingRegister from '@/components/TimingRegister.vue'
+import TimingCalculator from '@/components/TimingCalculator.vue'
+
 
 onMounted(() => {
   themeChange(false)
@@ -231,10 +193,6 @@ const showFormulas = ref(false)
 const i2cFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
 const i2cclk = ref(Number(localStorage.getItem('i2cclk')) || 16)
 
-// Input values that change with user input
-const inputFreq = ref(i2cFreq.value)
-const inputClk = ref(i2cclk.value)
-
 const fields = reactive<TimingResult>({
   presc: 0,
   scldel: 0,
@@ -256,27 +214,9 @@ watch(i2cclk, (newValue) => {
   localStorage.setItem('i2cclk', newValue.toString())
 })
 
-function resetRegister(): void {
-  registerHex.value = '0x00000000'
-}
-
-function setDefaultValue(): void {
-  registerHex.value = '0x300619'
-}
-
-function calculateFromFreqs(): void {
+function onCalculate(result: TimingResult): void {
   try {
-    const result = calculateTimings(inputClk.value * 1000000, inputFreq.value * 1000)
-
-    // Update the main values from inputs
-    i2cFreq.value = inputFreq.value
-    i2cclk.value = inputClk.value
-
-    fields.presc = result.presc
-    fields.scldel = result.scldel
-    fields.sdadel = result.sdadel
-    fields.sclh = result.sclh
-    fields.scll = result.scll
+    registerHex.value = generateHexFromResult(result)
     showFormulas.value = true
     error.value = null
   } catch (e) {
@@ -287,68 +227,13 @@ function calculateFromFreqs(): void {
   }
 }
 
-function calculateTimings(i2cclk: number, freq: number): TimingResult {
-  // Ratio check
-  const ratio: number = Math.floor(i2cclk / freq)
-  if (ratio < 4) {
-    throw new Error('The I2C PCLK must be at least 4 times the bus frequency!')
-  }
-
-  let presc_reg: number
-  let scll: number
-  let sclh: number
-  let sdadel: number
-  let scldel: number
-
-  if (freq > 100000) {
-    // Fast-mode (Fm) or Fast-mode Plus (Fm+)
-    presc_reg = Math.floor((ratio - 1) / 384)
-    const presc: number = presc_reg + 1
-
-    sclh = Math.floor((ratio / presc - 3) / 3)
-    scll = Math.floor(2 * (sclh + 1) - 1)
-
-    if (freq > 400000) {
-      // Fast-mode Plus (Fm+)
-      if (i2cclk < 17000000) throw new Error('I2CCLK too low for Fm+')
-
-      sdadel = Math.floor(i2cclk / 8000000 / presc)
-      scldel = Math.floor(i2cclk / 4000000 / presc) - 1
-    } else {
-      // Fast-mode (Fm)
-      if (i2cclk < 8000000) throw new Error('I2CCLK too low for Fm')
-
-      sdadel = Math.floor(i2cclk / 4000000 / presc)
-      scldel = Math.floor(i2cclk / 2000000 / presc) - 1
-    }
-  } else {
-    // Standard-mode (Sm)
-    if (i2cclk < 2000000) throw new Error('I2CCLK too low for Sm')
-
-    const presc: number = Math.floor((ratio - 1) / 512)
-    presc_reg = Math.min(presc, 15)
-
-    sclh = Math.floor(ratio / (presc_reg + 1) - 2) / 2
-    scll = sclh
-
-    if (sclh >= 256) throw new Error('The I2C PCLK is too fast for this bus frequency!')
-
-    sdadel = Math.floor(i2cclk / 2000000 / (presc_reg + 1))
-    scldel = Math.floor(i2cclk / 500000 / (presc_reg + 1)) - 1
-  }
-
-  // Sanity checks and limits
-  if (presc_reg >= 16) throw new Error('Prescaler value too high')
-
-  sdadel = Math.max(sdadel, 2)
-  scldel = Math.max(scldel, 4)
-
-  return {
-    presc: presc_reg,
-    scll: Math.floor(scll),
-    sclh: Math.floor(sclh),
-    sdadel: Math.floor(sdadel),
-    scldel: Math.floor(scldel),
-  }
+function generateHexFromResult(result: TimingResult): string {
+  const value: bigint =
+    ((BigInt(result.presc) & 0xfn) << 28n) |
+    ((BigInt(result.scldel) & 0xfn) << 20n) |
+    ((BigInt(result.sdadel) & 0xfn) << 16n) |
+    ((BigInt(result.sclh) & 0xffn) << 8n) |
+    (BigInt(result.scll) & 0xffn)
+  return '0x' + value.toString(16).toUpperCase().padStart(8, '0')
 }
 </script>
