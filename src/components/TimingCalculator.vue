@@ -47,14 +47,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { TimingResult } from '@/types/timing'
+import { registerFromFields } from '@/utils/register'
 
 const emit = defineEmits<{
-  calculate: [result: TimingResult]
   showFormulas: []
   'update:modelValue': [value: string]
   error: [message: string]
+  calculate: [{ i2cFreq: number; i2cclk: number }]
 }>()
 
 const props = defineProps<{
@@ -67,8 +68,17 @@ const registerHex = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
-const inputFreq = ref(400)
-const inputClk = ref(16)
+const inputFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
+const inputClk = ref(Number(localStorage.getItem('i2cclk')) || 16)
+
+// Add watchers for persistence
+watch(inputFreq, (newValue) => {
+  localStorage.setItem('i2c-freq', newValue.toString())
+})
+
+watch(inputClk, (newValue) => {
+  localStorage.setItem('i2cclk', newValue.toString())
+})
 
 function resetRegister(): void {
   registerHex.value = '0x00000000'
@@ -81,7 +91,8 @@ function setDefaultValue(): void {
 function calculate(): void {
   try {
     const result = calculateTimings(inputClk.value * 1000000, inputFreq.value * 1000)
-    emit('calculate', result)
+    registerHex.value = registerFromFields(result)
+    emit('calculate', { i2cFreq: inputFreq.value, i2cclk: inputClk.value })
   } catch (e) {
     emit('error', (e as Error).message)
   }

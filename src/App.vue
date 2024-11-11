@@ -13,10 +13,17 @@
         <TimingCalculator
           v-model="registerHex"
           :showFormulas="showFormulas"
+          @calculate="
+            ({ i2cFreq: newFreq, i2cclk: newClk }) => {
+              i2cFreq = newFreq
+              i2cclk = newClk
+              showFormulas = true
+            }
+          "
           @showFormulas="showFormulas = true"
           @error="error = $event"
         />
-        <TimingRegister v-model="registerHex" />
+
         <TimingFormulas
           v-if="showFormulas"
           :registerHex="registerHex"
@@ -24,6 +31,7 @@
           :i2cFreq="i2cFreq"
           @hideFormulas="showFormulas = false"
         />
+        <TimingRegister v-model="registerHex" />
       </div>
     </div>
   </main>
@@ -46,22 +54,14 @@ onMounted(() => {
   themeChange(false)
 })
 
+const i2cFreq = ref(400)
+const i2cclk = ref(16)
 const error = ref<string | null>(null)
 const themes = tailwindConfig.daisyui.themes
 const registerHex = ref(localStorage.getItem('i2c-register') || '0x00000000')
 const showFormulas = ref(false)
-const i2cFreq = ref(Number(localStorage.getItem('i2c-freq')) || 400)
-const i2cclk = ref(Number(localStorage.getItem('i2cclk')) || 16)
 
 watch(registerHex, (newValue) => {
   localStorage.setItem('i2c-register', newValue)
-})
-
-watch(i2cFreq, (newValue) => {
-  localStorage.setItem('i2c-freq', newValue.toString())
-})
-
-watch(i2cclk, (newValue) => {
-  localStorage.setItem('i2cclk', newValue.toString())
 })
 </script>
