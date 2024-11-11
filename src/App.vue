@@ -55,138 +55,107 @@
           </div>
         </div>
 
-        <div v-if="calculations" class="card bg-base-100 shadow-xl md:col-span-2">
+        <div v-if="calculations" class="card bg-base-100 shadow-xl">
           <div class="card-body">
             <h2 class="card-title">Timing Calculations</h2>
             <div class="space-y-4">
-              <div>
-                <div
-                  v-katex:display="
-                    '\\text{Ratio} = \\frac{f_{I2CCLK}}{f_{I2C}} = \\frac{' +
-                    i2cclk +
-                    '\\text{ MHz}}{' +
-                    i2cFreq +
-                    '\\text{ kHz}} = ' +
-                    calculations.ratio.toFixed(2)
-                  "
-                ></div>
-              </div>
+              <div
+                v-katex:display="
+                  '\\text{Ratio} = \\frac{f_{I2CCLK}}{f_{I2C}} = \\frac{' +
+                  i2cclk +
+                  '\\text{ MHz}}{' +
+                  i2cFreq +
+                  '\\text{ kHz}} = ' +
+                  calculations.ratio.toFixed(2)
+                "
+              ></div>
 
-              <div>
-                <div v-katex:display="'\\text{Mode: } ' + calculations.mode"></div>
-              </div>
+              <div v-katex:display="'\\text{Mode: } ' + calculations.mode"></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{I2CCLK} = \\frac{1}{' +
-                    i2cclk +
-                    '\\text{ MHz}} = ' +
-                    calculations.tI2CCLK.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{I2CCLK} = \\frac{1}{' +
+                  i2cclk +
+                  '\\text{ MHz}} = ' +
+                  calculations.tI2CCLK.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    '\\text{PRESC} = \\left\\lfloor\\frac{\\text{ratio} - 1}{' +
-                    (i2cFreq <= 100 ? '512' : '384') +
-                    '}\\right\\rfloor = ' +
-                    fields.presc +
-                    '\\text{, actual presc = }' +
-                    calculations.presc
-                  "
-                ></div>
-              </div>
+              <div
+                v-katex:display="
+                  '\\text{PRESC} = \\left\\lfloor\\frac{\\text{ratio} - 1}{' +
+                  (i2cFreq <= 100 ? '512' : '384') +
+                  '}\\right\\rfloor = ' +
+                  fields.presc +
+                  '\\text{, actual presc = }' +
+                  calculations.presc
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{PRESC} = (PRESC + 1) \\times t_{I2CCLK} = ' +
-                    calculations.tPRESC.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{PRESC} = (PRESC + 1) \\times t_{I2CCLK} = ' +
+                  calculations.tPRESC.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{SCLDEL} = (SCLDEL + 1) \\times t_{PRESC} = ' +
-                    calculations.tSCLDEL.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-                <div class="text-sm opacity-75">Data setup time (tSU;DAT)</div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{SCLDEL} = (SCLDEL + 1) \\times t_{PRESC} = ' +
+                  calculations.tSCLDEL.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{SDADEL} = SDADEL \\times t_{PRESC} = ' +
-                    calculations.tSDADEL.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-                <div class="text-sm opacity-75">Data hold time (tHD;DAT)</div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{SDADEL} = SDADEL \\times t_{PRESC} = ' +
+                  calculations.tSDADEL.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{SCLH} = (SCLH + 1) \\times t_{PRESC} = ' +
-                    calculations.tSCLH.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-                <div class="text-sm opacity-75">SCL high period</div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{SCLH} = (SCLH + 1) \\times t_{PRESC} = ' +
+                  calculations.tSCLH.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{SCLL} = (SCLL + 1) \\times t_{PRESC} = ' +
-                    calculations.tSCLL.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-                <div class="text-sm opacity-75">SCL low period</div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{SCLL} = (SCLL + 1) \\times t_{PRESC} = ' +
+                  calculations.tSCLL.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{SCL} = t_{SCLH} + t_{SCLL} = ' +
-                    calculations.tSCL.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-                <div class="text-sm opacity-75">SCL period</div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{SYNC1} + t_{SYNC2} > 4 \\times t_{I2CCLK} = ' +
+                  calculations.tSYNC.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    't_{SYNC1} + t_{SYNC2} = 4 \\times t_{I2CCLK} = ' +
-                    calculations.tSYNC.toFixed(2) +
-                    '\\text{ ns}'
-                  "
-                ></div>
-                <div class="text-sm opacity-75">Minimum synchronization time</div>
-              </div>
+              <div
+                v-katex:display="
+                  't_{SCL} = t_{SYNC1} + t_{SYNC2} + t_{SCLL} + t_{SCLH} \\approx ' +
+                  calculations.tSCL.toFixed(2) +
+                  '\\text{ ns}'
+                "
+              ></div>
 
-              <div>
-                <div
-                  v-katex:display="
-                    'f_{I2C} = \\frac{1}{t_{SCL}} = ' +
-                    calculations.actualFreq.toFixed(2) +
-                    '\\text{ kHz}'
-                  "
-                ></div>
-                <div class="text-sm opacity-75">Actual I2C frequency</div>
-              </div>
+              <div
+                v-katex:display="
+                  'f_{I2C} = \\frac{1}{t_{SCL}} \\approx ' +
+                  calculations.actualFreq.toFixed(2) +
+                  '\\text{ kHz}'
+                "
+              ></div>
             </div>
           </div>
         </div>
@@ -397,8 +366,8 @@ interface TimingCalculation {
   tSDADEL: number
   tSCLH: number
   tSCLL: number
-  tSCL: number
   tSYNC: number
+  tSCL: number
   actualFreq: number
 }
 
@@ -504,7 +473,6 @@ function calculateFromFreqs(): void {
   }
 }
 
-
 function calculateTimings(i2cclk: number, freq: number): TimingCalculation {
   // Ratio check
   const ratio: number = Math.floor(i2cclk / freq)
@@ -525,7 +493,7 @@ function calculateTimings(i2cclk: number, freq: number): TimingCalculation {
     presc_reg = Math.floor((ratio - 1) / 384)
     const presc: number = presc_reg + 1
 
-    sclh = Math.floor(((ratio / presc) - 3) / 3)
+    sclh = Math.floor((ratio / presc - 3) / 3)
     scll = Math.floor(2 * (sclh + 1) - 1)
 
     if (freq > 400000) {
@@ -573,6 +541,10 @@ function calculateTimings(i2cclk: number, freq: number): TimingCalculation {
 
   const presc = presc_reg + 1
   const tPRESC = presc * tI2CCLK
+  const tSCLH = (timings.sclh + 1) * tPRESC
+  const tSCLL = (timings.scll + 1) * tPRESC
+  const tSYNC = 4 * tI2CCLK // t_SYNC1 + t_SYNC2 > 4 * t_I2CCLK
+  const tSCL = tSCLH + tSCLL + tSYNC
 
   return {
     timings,
@@ -588,12 +560,11 @@ function calculateTimings(i2cclk: number, freq: number): TimingCalculation {
     tPRESC,
     tSCLDEL: (timings.scldel + 1) * tPRESC,
     tSDADEL: timings.sdadel * tPRESC,
-    tSCLH: (timings.sclh + 1) * tPRESC,
-    tSCLL: (timings.scll + 1) * tPRESC,
-    tSCL: (timings.sclh + timings.scll + 2) * tPRESC,
-    tSYNC: 4 * tI2CCLK,
-    actualFreq: 1e6 / ((timings.sclh + timings.scll + 2) * tPRESC),
+    tSCLH,
+    tSCLL,
+    tSYNC,
+    tSCL,
+    actualFreq: 1e6 / tSCL,
   }
 }
-
 </script>
