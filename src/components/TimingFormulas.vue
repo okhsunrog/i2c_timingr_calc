@@ -33,6 +33,17 @@
 
         <div
           v-katex:display="
+            '\\text{PRESC} = \\left\\lfloor\\frac{\\text{ratio} - 1}{' +
+            (i2cFreq <= 100 ? '512' : '384') +
+            '}\\right\\rfloor = ' +
+            fields.presc +
+            '\\text{, actual presc = }' +
+            timingValues.presc
+          "
+        ></div>
+
+        <div
+          v-katex:display="
             't_{PRESC} = (PRESC + 1) \\times t_{I2CCLK} = ' +
             timingValues.tPRESC.toFixed(2) +
             '\\text{ ns}'
@@ -134,6 +145,7 @@ const timingValues = computed(() => {
           ? 'Fast-mode (Fm)'
           : 'Standard-mode (Sm)',
     tI2CCLK,
+    presc,
     tPRESC,
     tSCLDEL: (fields.value.scldel + 1) * tPRESC,
     tSDADEL: fields.value.sdadel * tPRESC,
