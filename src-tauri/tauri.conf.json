@@ -5,8 +5,8 @@
   "identifier": "ru.mm94.i2c-timingr-calc",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "bun dev",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "bun run dev",
     "beforeBuildCommand": "bun run build"
   },
   "app": {
