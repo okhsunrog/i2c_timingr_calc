@@ -131,6 +131,7 @@
           </tbody>
         </table>
       </div>
+      <TimingNotes />
     </div>
   </div>
 </template>
@@ -139,6 +140,7 @@
 import { computed } from 'vue'
 import type { TimingResult } from '@/types/timing'
 import { fieldsFromRegister, registerFromFields } from '@/utils/register'
+import TimingNotes from './TimingNotes.vue'
 
 const props = defineProps<{
   modelValue: string
