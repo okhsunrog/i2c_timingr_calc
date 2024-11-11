@@ -10,7 +10,6 @@
         </select>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Hex Input -->
         <div class="card bg-base-100 shadow-xl">
           <div class="card-body">
             <h2 class="card-title">Register Value (32-bit hex)</h2>
@@ -50,6 +49,9 @@
                   />
                 </div>
                 <button class="btn btn-primary" @click="calculateFromFreqs">Calculate</button>
+                <button v-if="!showFormulas" class="btn btn-secondary" @click="showFormulas = true">
+                  Show Formulas
+                </button>
               </div>
             </div>
           </div>
