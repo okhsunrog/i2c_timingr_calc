@@ -15,9 +15,14 @@
               <td
                 v-for="i in 16"
                 :key="i"
-                class="font-mono cursor-pointer hover:bg-base-300"
-                :class="getBitAtPosition(32 - i) === 1 ? 'bg-accent/30' : 'bg-base-200'"
-                @click="toggleBit(32 - i)"
+                class="font-mono"
+                :class="[
+                  getBitAtPosition(32 - i) === 1 ? 'bg-accent/30' : 'bg-base-200',
+                  isReservedBit(32 - i)
+                    ? 'opacity-50 bg-base-300'
+                    : 'cursor-pointer hover:bg-base-300',
+                ]"
+                @click="isReservedBit(32 - i) ? null : toggleBit(32 - i)"
               >
                 {{ getBitAtPosition(32 - i) }}
               </td>
@@ -126,99 +131,35 @@
           </tbody>
         </table>
       </div>
-      <div class="mt-6">
-        <div class="collapse collapse-arrow bg-base-200">
-          <input type="checkbox" />
-          <div class="collapse-title text-xl font-medium">Notes</div>
-          <div class="collapse-content text-sm italic opacity-75 space-y-4">
-            <p>
-              <strong>SCLDEL (Data setup time):</strong> Used to generate delay tSCLDEL between SDA
-              edge and SCL rising edge. In master mode and slave mode with NOSTRETCH = 0, SCL line
-              is stretched low during tSCLDEL. <br />
-              tSCLDEL = (SCLDEL+1) × tPRESC <br />
-              Note: tSCLDEL is used to generate tSU:DAT timing.
-            </p>
-
-            <p>
-              <strong>SDADEL (Data hold time):</strong> Used to generate delay tSDADEL between SCL
-              falling edge and SDA edge. In master mode and slave mode with NOSTRETCH = 0, SCL line
-              is stretched low during tSDADEL. <br />
-              tSDADEL = SDADEL × tPRESC <br />
-              Note: SDADEL is used to generate tHD:DAT timing.
-            </p>
-
-            <p>
-              <strong>SCLH (SCL high period):</strong> Used to generate the SCL high period in
-              master mode. <br />
-              tSCLH = (SCLH+1) × tPRESC <br />
-              Note: SCLH is also used to generate tSU:STO and tHD:STA timing.
-            </p>
-
-            <p>
-              <strong>SCLL (SCL low period):</strong> Used to generate the SCL low period in master
-              mode. <br />
-              tSCLL = (SCLL+1) × tPRESC <br />
-              Note: SCLL is also used to generate tBUF and tSU:STA timings.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch, onMounted } from 'vue'
-import type { TimingFields } from '@/types/timing'
+import { computed } from 'vue'
+import type { TimingResult } from '@/types/timing'
+import { fieldsFromRegister, registerFromFields } from '@/utils/register'
 
 const props = defineProps<{
-  modelValue: string // v-model convention
+  modelValue: string
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-// Create a computed property for two-way binding
 const registerHex = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
 
-// Watch for changes in registerHex
-watch(registerHex, (newValue) => {
-  fields.updateFromRegister(newValue)
-})
+const fields = computed(() => fieldsFromRegister(registerHex.value))
 
-// Initialize fields with the initial register value
-onMounted(() => {
-  fields.updateFromRegister(registerHex.value)
-})
+type NumericFields = keyof TimingResult
 
-const fields = reactive<TimingFields>({
-  presc: 0,
-  scldel: 0,
-  sdadel: 0,
-  sclh: 0,
-  scll: 0,
-  updateFromRegister: (value: string) => {
-    const bigValue = BigInt(`0x${value.replace('0x', '')}`)
-    fields.presc = Number((bigValue >> 28n) & 0xfn)
-    fields.scldel = Number((bigValue >> 20n) & 0xfn)
-    fields.sdadel = Number((bigValue >> 16n) & 0xfn)
-    fields.sclh = Number((bigValue >> 8n) & 0xffn)
-    fields.scll = Number(bigValue & 0xffn)
-  },
-  updateFromFields: () => {
-    const value: bigint =
-      ((BigInt(fields.presc) & 0xfn) << 28n) |
-      ((BigInt(fields.scldel) & 0xfn) << 20n) |
-      ((BigInt(fields.sdadel) & 0xfn) << 16n) |
-      ((BigInt(fields.sclh) & 0xffn) << 8n) |
-      (BigInt(fields.scll) & 0xffn)
-    return '0x' + value.toString(16).toUpperCase().padStart(8, '0')
-  },
-})
+function isReservedBit(position: number): boolean {
+  return position >= 24 && position <= 27
+}
 
 function getBitAtPosition(position: number): number {
   const value: number = parseInt(registerHex.value, 16)
@@ -230,17 +171,14 @@ function toggleBit(position: number): void {
   const mask: bigint = 1n << BigInt(position)
   const newValue: bigint = value ^ mask
   registerHex.value = '0x' + (newValue & 0xffffffffn).toString(16).toUpperCase().padStart(8, '0')
-  fields.updateFromRegister(registerHex.value)
 }
-
-type NumericFields = Exclude<keyof TimingFields, 'updateFromRegister' | 'updateFromFields'>
 
 function updateFieldFromHex(field: NumericFields, event: Event, mask: number): void {
   const value = (event.target as HTMLInputElement).value
   const numValue = parseInt(value.replace('0x', ''), 16)
   if (!isNaN(numValue)) {
-    fields[field] = numValue & mask
-    registerHex.value = fields.updateFromFields()
+    const newFields = { ...fields.value, [field]: numValue & mask }
+    registerHex.value = registerFromFields(newFields)
   }
 }
 </script>

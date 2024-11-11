@@ -22,7 +22,7 @@
               v-model.number="inputFreq"
               type="number"
               class="input input-bordered"
-              placeholder="400000"
+              placeholder="400"
             />
           </div>
           <div class="form-control">
@@ -33,7 +33,7 @@
               v-model.number="inputClk"
               type="number"
               class="input input-bordered"
-              placeholder="16000000"
+              placeholder="16"
             />
           </div>
           <button class="btn btn-primary" @click="calculate">Calculate</button>
@@ -57,9 +57,8 @@ const emit = defineEmits<{
   error: [message: string]
 }>()
 
-
 const props = defineProps<{
-  modelValue: string,
+  modelValue: string
   showFormulas: boolean
 }>()
 
