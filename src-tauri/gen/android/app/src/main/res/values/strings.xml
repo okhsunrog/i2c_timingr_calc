@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">STM32 I2C TIMINGR Calc</string>
+    <string name="main_activity_title">STM32 I2C TIMINGR Calc</string>
+</resources>

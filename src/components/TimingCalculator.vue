@@ -121,7 +121,7 @@ function calculateTimings(i2cclk: number, freq: number): TimingResult {
 
     if (freq > 400000) {
       // Fast-mode Plus (Fm+)
-      if (i2cclk < 17000000) throw new Error('I2CCLK too low for Fm+')
+      if (i2cclk < 16000000) throw new Error('I2CCLK too low for Fm+')
 
       sdadel = Math.floor(i2cclk / 8000000 / presc)
       scldel = Math.floor(i2cclk / 4000000 / presc) - 1
