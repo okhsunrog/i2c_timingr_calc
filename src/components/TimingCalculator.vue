@@ -61,7 +61,6 @@ const emit = defineEmits<{
   (event: 'calculate', data: { i2cFreq: number; i2cclk: number }): void
 }>()
 
-
 const props = defineProps<{
   modelValue: string
   showFormulas: boolean
@@ -96,15 +95,30 @@ async function calculate(): Promise<void> {
   try {
     const result = await invoke<TimingResult>('get_timings', {
       i2cclk: inputClk.value * 1000000,
-      freq: inputFreq.value * 1000
+      freq: inputFreq.value * 1000,
     })
-    console.log('Timing result:', result)
     registerHex.value = registerFromFields(result)
     emit('calculate', { i2cFreq: inputFreq.value, i2cclk: inputClk.value })
   } catch (e) {
-    console.error(e)
-    emit('timingError', (e as Error).message)
+    let errorMessage: string
+    if (typeof e === 'string') {
+      // e is a string, use it directly
+      errorMessage = e
+    } else if (e && typeof e === 'object') {
+      if ('message' in e && typeof e.message === 'string') {
+        // e.message exists and is a string
+        errorMessage = e.message
+      } else if ('toString' in e && typeof e.toString === 'function') {
+        // Use e.toString() as the message
+        errorMessage = e.toString()
+      } else {
+        // Fallback: serialize the error object
+        errorMessage = JSON.stringify(e)
+      }
+    } else {
+      errorMessage = 'An unknown error occurred'
+    }
+    emit('timingError', errorMessage)
   }
 }
-
 </script>
