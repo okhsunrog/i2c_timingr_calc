@@ -1,16 +1,17 @@
 {
   "name": "i2c_timingr_calc",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@types/tailwindcss": "^3.1.0",
@@ -27,7 +28,7 @@
     "@vue/eslint-config-typescript": "^14.1.4",
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.20",
-    "daisyui": "^4.12.21",
+    "daisyui": "^4.12.22",
     "eslint": "^9.16.0",
     "eslint-plugin-vue": "^9.32.0",
     "npm-run-all2": "^7.0.1",
