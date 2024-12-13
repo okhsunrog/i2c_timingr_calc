@@ -14,7 +14,6 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@types/tailwindcss": "^3.1.0",
     "katex": "^0.16.15",
     "vue": "^3.5.13",
     "vue3-katex": "^0.7.0"
@@ -23,6 +22,7 @@
     "@tauri-apps/cli": "^2.1.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.10.2",
+    "@types/tailwindcss": "^3.1.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/eslint-config-prettier": "^10.1.0",
     "@vue/eslint-config-typescript": "^14.1.4",
