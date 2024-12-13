@@ -3,15 +3,17 @@
     <div class="card-body">
       <h2 class="card-title">Register Value (32-bit hex)</h2>
       <div class="space-y-2">
-        <div class="flex gap-2 items-center">
+        <div class="flex flex-wrap gap-2 items-center">
           <input
             v-model="registerHex"
             type="text"
-            class="input input-bordered w-48"
+            class="input input-bordered w-full sm:w-48"
             placeholder="0x00000000"
           />
-          <button class="btn btn-sm btn-accent" @click="resetRegister">Reset</button>
-          <button class="btn btn-sm btn-success" @click="setDefaultValue">Default</button>
+          <dev class="flex gap-2">
+            <button class="btn btn-sm btn-accent" @click="resetRegister">Reset</button>
+            <button class="btn btn-sm btn-success" @click="setDefaultValue">Default</button>
+          </dev>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">

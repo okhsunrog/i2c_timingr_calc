@@ -1,7 +1,7 @@
 <template>
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
-      <div class="flex justify-between items-center">
+      <div class="flex flex-wrap gap-2 items-center">
         <h2 class="card-title">Timing Calculations</h2>
         <button class="btn btn-sm btn-secondary" @click="$emit('hideFormulas')">
           Hide Formulas
@@ -9,7 +9,7 @@
       </div>
       <div class="space-y-4">
         <div
-          v-katex:display="
+          v-katex="
             '\\text{Ratio} = \\frac{f_{I2CCLK}}{f_{I2C}} = \\frac{' +
             i2cclk +
             '\\text{ MHz}}{' +
@@ -19,10 +19,10 @@
           "
         ></div>
 
-        <div v-katex:display="'\\text{Mode: } ' + timingValues.mode"></div>
+        <div v-katex="'\\text{Mode: } ' + timingValues.mode"></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{I2CCLK} = \\frac{1}{' +
             i2cclk +
             '\\text{ MHz}} = ' +
@@ -32,7 +32,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             '\\text{PRESC} = \\left\\lfloor\\frac{\\text{ratio} - 1}{' +
             (i2cFreq <= 100 ? '512' : '384') +
             '}\\right\\rfloor = ' +
@@ -43,7 +43,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{PRESC} = (PRESC + 1) \\times t_{I2CCLK} = ' +
             timingValues.tPRESC.toFixed(2) +
             '\\text{ ns}'
@@ -51,7 +51,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{SCLDEL} = (SCLDEL + 1) \\times t_{PRESC} = ' +
             timingValues.tSCLDEL.toFixed(2) +
             '\\text{ ns}'
@@ -59,7 +59,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{SDADEL} = SDADEL \\times t_{PRESC} = ' +
             timingValues.tSDADEL.toFixed(2) +
             '\\text{ ns}'
@@ -67,7 +67,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{SCLH} = (SCLH + 1) \\times t_{PRESC} = ' +
             timingValues.tSCLH.toFixed(2) +
             '\\text{ ns}'
@@ -75,7 +75,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{SCLL} = (SCLL + 1) \\times t_{PRESC} = ' +
             timingValues.tSCLL.toFixed(2) +
             '\\text{ ns}'
@@ -83,7 +83,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{SYNC1} + t_{SYNC2} > 4 \\times t_{I2CCLK} = ' +
             timingValues.tSYNC.toFixed(2) +
             '\\text{ ns}'
@@ -91,7 +91,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             't_{SCL} = t_{SYNC1} + t_{SYNC2} + t_{SCLL} + t_{SCLH} \\approx ' +
             timingValues.tSCL.toFixed(2) +
             '\\text{ ns}'
@@ -99,7 +99,7 @@
         ></div>
 
         <div
-          v-katex:display="
+          v-katex="
             'f_{I2C} = \\frac{1}{t_{SCL}} \\approx ' +
             timingValues.actualFreq.toFixed(2) +
             '\\text{ kHz}'
