@@ -6,29 +6,29 @@
         <ThemeSelector />
       </div>
       <div class="grid xl:grid-cols-3 grid-cols-1 gap-4">
-        <div class="xl:col-span-1 flex flex-col gap-4">
-          <TimingCalculator
-            class="flex-1"
-            v-model="registerHex"
-            :showFormulas="showFormulas"
-            @calculate="
-              ({ i2cFreq: newFreq, i2cclk: newClk }) => {
-                i2cFreq = newFreq
-                i2cclk = newClk
-                showFormulas = true
-              }
-            "
-            @showFormulas="showFormulas = true"
-            @timingError="error = $event"
-          />
-          <TimingFormulas
-            v-if="showFormulas"
-            class="flex-1"
-            :registerHex="registerHex"
-            :i2cclk="i2cclk"
-            :i2cFreq="i2cFreq"
-            @hideFormulas="showFormulas = false"
-          />
+        <div class="xl:col-span-1">
+          <div class="grid md:grid-cols-2 xl:grid-cols-1 gap-4">
+            <TimingCalculator
+              v-model="registerHex"
+              :showFormulas="showFormulas"
+              @calculate="
+                ({ i2cFreq: newFreq, i2cclk: newClk }) => {
+                  i2cFreq = newFreq
+                  i2cclk = newClk
+                  showFormulas = true
+                }
+              "
+              @showFormulas="showFormulas = true"
+              @timingError="error = $event"
+            />
+            <TimingFormulas
+              v-if="showFormulas"
+              :registerHex="registerHex"
+              :i2cclk="i2cclk"
+              :i2cFreq="i2cFreq"
+              @hideFormulas="showFormulas = false"
+            />
+          </div>
         </div>
         <div class="xl:col-span-2">
           <TimingRegister v-model="registerHex" />
