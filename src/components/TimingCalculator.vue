@@ -18,7 +18,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text">I2C Bus Frequency (kHz)</span>
+              <span class="label-text">I2C Bus Freq (kHz)</span>
             </label>
             <input
               v-model.number="inputFreq"
