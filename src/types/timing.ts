@@ -1,9 +1,9 @@
 export interface TimingResult {
   presc: number
-  scldel: number
-  sdadel: number
-  sclh: number
   scll: number
+  sclh: number
+  sdadel: number
+  scldel: number
 }
 
 export interface TimingFields extends TimingResult {
