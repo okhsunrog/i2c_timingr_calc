@@ -17,7 +17,7 @@
             }
           "
           @showFormulas="showFormulas = true"
-          @error="error = $event"
+          @timingError="error = $event"
         />
 
         <TimingFormulas

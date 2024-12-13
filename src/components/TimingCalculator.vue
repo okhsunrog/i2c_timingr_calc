@@ -55,11 +55,12 @@ import type { TimingResult } from '@/types/timing'
 import { registerFromFields } from '@/utils/register'
 
 const emit = defineEmits<{
-  showFormulas: []
-  'update:modelValue': [value: string]
-  error: [message: string]
-  calculate: [{ i2cFreq: number; i2cclk: number }]
+  (event: 'showFormulas'): void
+  (event: 'update:modelValue', value: string): void
+  (event: 'timingError', message: string): void
+  (event: 'calculate', data: { i2cFreq: number; i2cclk: number }): void
 }>()
+
 
 const props = defineProps<{
   modelValue: string
@@ -101,7 +102,8 @@ async function calculate(): Promise<void> {
     registerHex.value = registerFromFields(result)
     emit('calculate', { i2cFreq: inputFreq.value, i2cclk: inputClk.value })
   } catch (e) {
-    emit('error', (e as Error).message)
+    console.error(e)
+    emit('timingError', (e as Error).message)
   }
 }
 
