@@ -51,6 +51,15 @@ const error = ref<string | null>(null)
 const registerHex = ref(localStorage.getItem('i2c-register') || '0x00000000')
 const showFormulas = ref(false)
 
+// Add a watcher for error that sets a timeout to clear it
+watch(error, (newError) => {
+  if (newError) {
+    setTimeout(() => {
+      error.value = null
+    }, 3000) // Error will disappear after 3 seconds
+  }
+})
+
 watch(registerHex, (newValue) => {
   localStorage.setItem('i2c-register', newValue)
 })
